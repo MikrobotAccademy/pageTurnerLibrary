@@ -31,7 +31,7 @@ class Book:
     # BUG #1 (OOP — __init__ assigns to local variable, not self)
     # self.title is never set; accessing it later raises AttributeError.
     def __init__(self, title, author, isbn, genre="General"):
-        title = title           # ← should be self.title = title
+        self.title = title         # ← should be self.title = title
         self.author = author
         self.isbn = isbn
         self.genre = genre
