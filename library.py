@@ -69,8 +69,9 @@ class Book:
 
     # BUG #2 (OOP — missing @classmethod; called as Book.from_dict(data) but
     # Python passes `data` as `self`, so the method receives wrong arguments.)
-    def from_dict(self, data):
-        book = Book(
+    @classmethod
+    def from_dict(cls, data):
+        book = cls(
             title=data["title"],
             author=data["author"],
             isbn=data["isbn"],
@@ -83,8 +84,10 @@ class Book:
         return book
 
     def __str__(self):
-        status = f"OUT → {self.borrower_name} (due {self.due_date})" \
-            if self.is_checked_out else "Available"
+        status = (f"OUT → {self.borrower_name} (due {self.due_date})" 
+            if self.is_checked_out 
+            else "Available"
+        )
         return f'"{self.title}" by {self.author} [{self.isbn}] — {status}'
 
 
