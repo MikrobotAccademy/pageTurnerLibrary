@@ -179,13 +179,34 @@ class Library:
 
     def checkout_book(self, isbn, borrower_name, loan_days=14):
         """Check out a book to a borrower."""
+
         book = self.find_by_isbn(isbn)
+
         if not book:
             print(f"Book with ISBN {isbn} not found.")
             return False
+        
         if book.is_checked_out:
             print(f'"{book.title}" is already checked out by {book.borrower_name}.')
             return False
+        
+        if not borrower_name.strip():
+            print("Borrower name cannot be empty.")
+            return False
+
+        if loan_days <= 0:
+            print("Loan period must be greater than 0.")
+            return False
+
+        book.checkout(borrower_name.strip(), loan_days)
+
+        print(
+            f'Checked out "{book.title}" '
+            f'to {borrower_name}. Due: {book.due_date}'
+        )
+
+        return True
+
 
         # BUG #4 (Logic — loan_days is never validated; a negative or zero value
         # creates a due date in the past, silently making the book "overdue"
@@ -196,16 +217,19 @@ class Library:
 
     def checkin_book(self, isbn):
         """Return a book to the library."""
+
         book = self.find_by_isbn(isbn)
+
         if not book:
             print(f"Book with ISBN {isbn} not found.")
             return False
+        
         if not book.is_checked_out:
             print(f'"{book.title}" is not currently checked out.')
             return False
-        name = book.borrower_name
+        borrower = book.borrower_name
         book.checkin()
-        print(f'"{book.title}" returned by {name}. Thank you!')
+        print(f'"{book.title}" returned by {borrower}. Thank you!')
         return True
 
     # ──────────────────────────────────────
@@ -232,7 +256,9 @@ class Library:
         # BUG #5 (Logic — counts books that are NOT checked out as "checked out";
         # the condition is inverted. `not b.is_checked_out` should be
         # `b.is_checked_out`.)
-        checked_out = sum(1 for b in self.books if not b.is_checked_out)
+        checked_out = sum(
+            1 for b in self.books if b.is_checked_out
+            )
         available = total - checked_out
 
         genres = {}
@@ -258,10 +284,16 @@ class Library:
         # BUG #6 (File I/O — `data/` directory is never created; on a fresh clone
         # this raises FileNotFoundError. os.makedirs(..., exist_ok=True) is needed
         # before the open() call.)
-        with open(self.DATA_FILE, "w") as f:
-            json.dump([b.to_dict() for b in self.books], f, indent=2)
-        print(f"Catalogue saved ({len(self.books)} books).")
+        os.makedirs("data", exist_ok=True)
 
+        try: 
+             with open(self.DATA_FILE, "w") as f:
+                 json.dump([b.to_dict() for b in self.books], f, indent=2)
+
+             print(f"Catalogue saved ({len(self.books)} books).")
+        except IOError as e:
+            print(f"Error saving catalogue: {e}")
+            
     def load_catalogue(self):
         """Load books from the JSON file."""
         if not os.path.exists(self.DATA_FILE):
