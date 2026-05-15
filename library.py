@@ -151,7 +151,8 @@ class Library:
         keyword = keyword.lower()
         return [
             b for b in self.books
-            if keyword in b.title or keyword in b.author
+            if keyword in b.title.lower()
+            or keyword in b.author.lower()
         ]
 
     def list_all(self, available_only=False):
